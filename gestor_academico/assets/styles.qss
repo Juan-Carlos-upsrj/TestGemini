@@ -1,0 +1,123 @@
+/* General Styling */
+QWidget {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Main Window */
+#MainWindow {
+    background-color: #f0f2f5; /* Light grey background */
+}
+
+/* Sidebar Navigation */
+#Sidebar {
+    background-color: #ffffff;
+    border-right: 1px solid #e0e0e0;
+}
+
+#Sidebar QPushButton {
+    border: none;
+    padding: 12px 20px;
+    text-align: left;
+    font-size: 16px;
+    font-weight: 500;
+    color: #555;
+    border-radius: 8px;
+    margin: 4px 10px;
+}
+
+#Sidebar QPushButton:hover {
+    background-color: #eef5ff; /* Light blue on hover */
+}
+
+#Sidebar QPushButton:checked {
+    background-color: #e2ecf8; /* Slightly darker blue for selected */
+    color: #005fbe;
+    font-weight: 600;
+}
+
+/* Main Content Area */
+#ContentArea {
+    background-color: #f0f2f5;
+}
+
+/* Title Labels */
+QLabel#HeaderTitle {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1c1c1e;
+}
+
+/* Buttons */
+QPushButton#PrimaryButton {
+    background-color: #007aff; /* Primary blue */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 8px;
+}
+QPushButton#PrimaryButton:hover {
+    background-color: #005fbe; /* Darker blue on hover */
+}
+
+QPushButton#SecondaryButton {
+    background-color: #ffffff;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 8px;
+}
+QPushButton#SecondaryButton:hover {
+    background-color: #f5f5f5;
+}
+
+
+/* Group Card Styling */
+QFrame#GroupCard {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    min-width: 250px;
+    max-width: 250px;
+}
+
+QLabel#CardImage {
+    background-color: #e0e0e0; /* Placeholder color */
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    min-height: 120px;
+}
+
+QLabel#CardTitle {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+QLabel#CardSubtitle {
+    color: #666;
+    font-size: 14px;
+}
+
+/* Progress Bar for At-Risk Students */
+QProgressBar {
+    border: none;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    height: 8px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    background-color: #ffc107; /* An amber/warning color */
+    border-radius: 4px;
+}
+
+/* Scroll Area */
+QScrollArea {
+    border: none;
+}
