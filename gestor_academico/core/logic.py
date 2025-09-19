@@ -50,20 +50,15 @@ def delete_group(group_name: str):
 
 def _calculate_student_attendance(student_id: str, attendance_records: List[Dict[str, str]]) -> float:
     """
-    Calculates the attendance percentage for a single student.
+    Calculates the attendance percentage for a single student from long-format data.
     """
-    total_classes = 0
-    attended_classes = 0
-
-    for record in attendance_records:
-        if student_id in record:
-            total_classes += 1
-            if record[student_id].lower() in PRESENT_STATUSES:
-                attended_classes += 1
+    student_records = [rec for rec in attendance_records if rec.get('student_id') == student_id]
+    total_classes = len(student_records)
 
     if total_classes == 0:
         return 100.0  # No classes yet, so perfect attendance
 
+    attended_classes = sum(1 for rec in student_records if rec.get('status', '').lower() in PRESENT_STATUSES)
     return (attended_classes / total_classes) * 100
 
 def get_all_groups_summary() -> List[Dict[str, Any]]:
@@ -124,3 +119,71 @@ def get_group_details(group_name: str) -> Dict[str, Any]:
             student["is_at_risk"] = False
 
     return config
+
+# --- Student & Attendance Specific Logic ---
+
+def add_student_to_group(group_name: str, student_name: str) -> Dict[str, Any]:
+    """Adds a new student to a group."""
+    config = data_manager.load_group_config(group_name)
+    if not config:
+        raise ValueError(f"Group '{group_name}' not found.")
+
+    students = config.get("students", [])
+
+    # Simple ID generation for now
+    new_id = f"s_{len(students) + 1}"
+
+    new_student = {"id": new_id, "name": student_name}
+    students.append(new_student)
+
+    config["students"] = students
+    data_manager.save_group_config(group_name, config)
+    return new_student
+
+def get_students_for_group(group_name: str) -> List[Dict[str, Any]]:
+    """Returns the list of students for a given group."""
+    config = data_manager.load_group_config(group_name)
+    return config.get("students", [])
+
+def get_attendance_for_date(group_name: str, target_date: str) -> Dict[str, Dict[str, str]]:
+    """
+    Gets attendance for a specific date, returning a dict for easy lookup.
+    Format: {student_id: {'status': 'presente', 'notes': '...'}, ...}
+    """
+    all_attendance = data_manager.load_attendance(group_name)
+    date_attendance = {}
+
+    for record in all_attendance:
+        if record.get('date') == target_date:
+            student_id = record.get('student_id')
+            if student_id:
+                date_attendance[student_id] = {
+                    "status": record.get("status", ""),
+                    "notes": record.get("notes", "")
+                }
+    return date_attendance
+
+def save_attendance_for_date(group_name: str, target_date: str, new_records: List[Dict[str, str]]):
+    """
+    Saves attendance for a specific date.
+    It reads all data, removes old records for the target date, appends the new ones, and saves.
+    `new_records` is a list of dicts: [{'student_id': 's_1', 'status': 'presente', 'notes': ''}, ...]
+    """
+    all_attendance = data_manager.load_attendance(group_name)
+
+    # Filter out any old records for the target date
+    other_dates_attendance = [rec for rec in all_attendance if rec.get('date') != target_date]
+
+    # Create new records with the date included
+    updated_date_records = []
+    for record in new_records:
+        updated_date_records.append({
+            "date": target_date,
+            "student_id": record["student_id"],
+            "status": record["status"],
+            "notes": record.get("notes", "")
+        })
+
+    # Combine and save
+    final_attendance = other_dates_attendance + updated_date_records
+    data_manager.save_attendance(group_name, final_attendance)

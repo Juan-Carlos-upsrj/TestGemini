@@ -121,3 +121,74 @@ QProgressBar::chunk {
 QScrollArea {
     border: none;
 }
+
+/* Generic Surface for cards/pages */
+QWidget#Surface {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+}
+
+/* Calendar Widget */
+QCalendarWidget QToolButton {
+    color: #333;
+    font-size: 14px;
+    icon-size: 18px;
+    background-color: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+QCalendarWidget QToolButton:hover {
+    background-color: #eef5ff;
+}
+
+QCalendarWidget QMenu {
+    background-color: #ffffff;
+}
+
+QCalendarWidget QSpinBox {
+    background-color: #f0f2f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+QCalendarWidget QAbstractItemView:enabled {
+    font-size: 14px;
+    color: #333;
+}
+
+QCalendarWidget QAbstractItemView:disabled {
+    color: #9ca3af;
+}
+
+QCalendarWidget QAbstractItemView:item:selected {
+    background-color: #007aff;
+    color: white;
+    border-radius: 16px; /* Make it a circle */
+}
+
+/* Table Widget */
+QTableWidget {
+    border: none;
+    gridline-color: #e5e7eb;
+}
+
+QHeaderView::section {
+    background-color: #f9fafb;
+    padding: 8px;
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+}
+
+QTableWidget::item {
+    padding: 10px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+QTableWidget::item:selected {
+    background-color: #eef5ff;
+}

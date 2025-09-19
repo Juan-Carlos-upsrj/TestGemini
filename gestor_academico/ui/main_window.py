@@ -8,6 +8,7 @@ from PySide6.QtCore import Qt, QSize
 
 from gestor_academico.core import logic
 from .widgets.group_card import GroupCard
+from .pages.attendance_page import AttendancePage
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -90,11 +91,10 @@ class MainWindow(QMainWindow):
 
         # Create and add pages
         self.groups_page = self._create_groups_page()
-        self.asistencia_page = QLabel("Página de Asistencia (en construcción)") # Placeholder
-        self.asistencia_page.setAlignment(Qt.AlignCenter)
+        self.attendance_page = AttendancePage()
 
         self.stacked_widget.addWidget(self.groups_page)
-        self.stacked_widget.addWidget(self.asistencia_page)
+        self.stacked_widget.addWidget(self.attendance_page)
 
         layout.addWidget(self.stacked_widget)
         return content_widget

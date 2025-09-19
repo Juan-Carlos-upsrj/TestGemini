@@ -45,18 +45,19 @@ def load_group_config(group_name: str) -> Dict[str, Any]:
         return json.load(f)
 
 def save_attendance(group_name: str, attendance_data: List[Dict[str, Any]]):
-    """Saves a group's attendance data to a CSV file."""
-    if not attendance_data:
-        return # Don't write an empty file or a file with only headers
-
+    """
+    Saves a group's attendance data to a CSV file in long format.
+    The expected headers are ['date', 'student_id', 'status', 'notes'].
+    """
     ensure_data_directory_exists()
     path = get_group_attendance_path(group_name)
-    headers = attendance_data[0].keys()
+    headers = ['date', 'student_id', 'status', 'notes']
 
     with open(path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=headers)
         writer.writeheader()
-        writer.writerows(attendance_data)
+        if attendance_data:
+            writer.writerows(attendance_data)
 
 def load_attendance(group_name: str) -> List[Dict[str, Any]]:
     """Loads a group's attendance data from its CSV file."""

@@ -39,7 +39,14 @@ if __name__ == "__main__":
         print("No groups found, creating dummy data for demonstration...")
         from gestor_academico.core import logic
         try:
-            logic.create_new_group("Grupo de Cálculo")
+            calc_group = "Grupo de Cálculo"
+            logic.create_new_group(calc_group)
+            logic.add_student_to_group(calc_group, "Sofia Rodriguez")
+            logic.add_student_to_group(calc_group, "Mateo Vargas")
+            logic.add_student_to_group(calc_group, "Isabella Perez")
+            logic.add_student_to_group(calc_group, "Alejandro Gomez")
+            logic.add_student_to_group(calc_group, "Camila Torres")
+
             logic.create_new_group("Lab. de Física", prefix="IAEV-")
             logic.create_new_group("Taller de Redacción")
         except ValueError as e:
