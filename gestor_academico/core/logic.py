@@ -187,3 +187,58 @@ def save_attendance_for_date(group_name: str, target_date: str, new_records: Lis
     # Combine and save
     final_attendance = other_dates_attendance + updated_date_records
     data_manager.save_attendance(group_name, final_attendance)
+
+def remove_student_from_group(group_name: str, student_id: str):
+    """Removes a student from a group's student list."""
+    config = data_manager.load_group_config(group_name)
+    if not config:
+        raise ValueError(f"Group '{group_name}' not found.")
+
+    students = config.get("students", [])
+    students_after_removal = [s for s in students if s.get("id") != student_id]
+
+    if len(students) == len(students_after_removal):
+        raise ValueError(f"Student with id '{student_id}' not found in group '{group_name}'.")
+
+    config["students"] = students_after_removal
+    data_manager.save_group_config(group_name, config)
+
+def update_student_in_group(group_name: str, student_id: str, new_name: str):
+    """Updates a student's information in a group."""
+    config = data_manager.load_group_config(group_name)
+    if not config:
+        raise ValueError(f"Group '{group_name}' not found.")
+
+    students = config.get("students", [])
+    student_found = False
+    for student in students:
+        if student.get("id") == student_id:
+            student["name"] = new_name
+            student_found = True
+            break
+
+    if not student_found:
+        raise ValueError(f"Student with id '{student_id}' not found in group '{group_name}'.")
+
+    config["students"] = students
+    data_manager.save_group_config(group_name, config)
+
+def update_group_settings(group_name: str, new_settings: Dict[str, Any]):
+    """Updates the general settings of a group."""
+    config = data_manager.load_group_config(group_name)
+    if not config:
+        raise ValueError(f"Group '{group_name}' not found.")
+
+    # Update config with new values
+    config.update(new_settings)
+
+    # A special case: if the name changes, the directory name must change too.
+    new_name = new_settings.get("name")
+    if new_name and new_name != group_name:
+        # This is a more complex operation involving renaming the directory.
+        # For now, let's assume name change is handled separately or not at all.
+        # To keep it simple, we'll just update the config file.
+        # A more robust solution would involve a `rename_group` function in data_manager.
+        config["name"] = new_name # Update the name inside the config
+
+    data_manager.save_group_config(group_name, config)

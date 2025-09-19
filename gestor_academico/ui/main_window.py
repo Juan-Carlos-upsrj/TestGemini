@@ -9,6 +9,7 @@ from PySide6.QtCore import Qt, QSize
 from gestor_academico.core import logic
 from .widgets.group_card import GroupCard
 from .pages.attendance_page import AttendancePage
+from .pages.group_detail_page import GroupDetailPage
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -92,9 +93,12 @@ class MainWindow(QMainWindow):
         # Create and add pages
         self.groups_page = self._create_groups_page()
         self.attendance_page = AttendancePage()
+        self.group_detail_page = GroupDetailPage()
+        self.group_detail_page.backRequested.connect(lambda: self.stacked_widget.setCurrentWidget(self.groups_page))
 
         self.stacked_widget.addWidget(self.groups_page)
         self.stacked_widget.addWidget(self.attendance_page)
+        self.stacked_widget.addWidget(self.group_detail_page)
 
         layout.addWidget(self.stacked_widget)
         return content_widget
@@ -161,6 +165,7 @@ class MainWindow(QMainWindow):
                     at_risk_percentage=group_data["at_risk_percentage"]
                 )
                 card.deleteRequested.connect(self._on_delete_group_requested)
+                card.viewRequested.connect(self._on_view_group_details_requested)
                 self.groups_layout.addWidget(card)
 
         except Exception as e:
@@ -200,6 +205,11 @@ class MainWindow(QMainWindow):
                 self._load_group_cards() # Refresh the view
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar el grupo: {e}")
+
+    def _on_view_group_details_requested(self, group_name: str):
+        """Handles the 'viewRequested' signal from a GroupCard."""
+        self.group_detail_page.set_group(group_name)
+        self.stacked_widget.setCurrentWidget(self.group_detail_page)
 
 
 # This block is for testing the window directly

@@ -6,9 +6,10 @@ class GroupCard(QFrame):
     """
     A custom widget to display a summary of a single group.
     This corresponds to the cards shown in the 'Mis Grupos' view.
-    Emits a 'deleteRequested' signal when the user chooses to delete.
+    Emits signals for view and delete requests.
     """
     deleteRequested = Signal(str)
+    viewRequested = Signal(str)
 
     def __init__(self, group_name: str, student_count: int, at_risk_percentage: float, parent=None):
         super().__init__(parent)
@@ -81,3 +82,9 @@ class GroupCard(QFrame):
     def _emit_delete_signal(self):
         """Emits the signal to request deletion."""
         self.deleteRequested.emit(self.group_name)
+
+    def mousePressEvent(self, event):
+        """Emits the viewRequested signal on left-click."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.viewRequested.emit(self.group_name)
+        super().mousePressEvent(event)
