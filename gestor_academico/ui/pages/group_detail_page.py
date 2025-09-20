@@ -102,7 +102,11 @@ class GroupDetailPage(QWidget):
         self.edit_student_button.clicked.connect(self._on_edit_student)
         self.remove_student_button = QPushButton("Eliminar Estudiante")
         self.remove_student_button.clicked.connect(self._on_remove_student)
+        self.import_csv_button = QPushButton("Importar desde CSV")
+        self.import_csv_button.clicked.connect(self._on_import_from_csv)
 
+        button_layout.addWidget(self.import_csv_button)
+        button_layout.addSpacing(20)
         button_layout.addWidget(self.add_student_button)
         button_layout.addWidget(self.edit_student_button)
         button_layout.addWidget(self.remove_student_button)
@@ -212,3 +216,19 @@ class GroupDetailPage(QWidget):
             self.load_group_data() # Refresh to be sure
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo guardar la configuración: {e}")
+
+    def _on_import_from_csv(self):
+        """Handles importing students from a CSV file."""
+        file_path, _ = QFileDialog.getOpenFileName(self, "Seleccionar CSV de Estudiantes", "",
+                                                   "CSV Files (*.csv);;All Files (*)")
+        if not file_path:
+            return
+
+        try:
+            result = logic.add_students_from_csv(self.group_name, file_path)
+            QMessageBox.information(self, "Importación Completa",
+                                    f"Se han añadido {result['added']} nuevos estudiantes.\n"
+                                    f"Se han omitido {result['skipped']} estudiantes (posiblemente duplicados).")
+            self.load_group_data() # Refresh the student list
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Importación", f"No se pudo importar el archivo: {e}")

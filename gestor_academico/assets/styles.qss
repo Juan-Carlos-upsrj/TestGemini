@@ -3,6 +3,7 @@ QWidget {
     font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
     font-size: 14px;
     color: #333;
+    background-color: #ffffff; /* Enforce a light base background */
 }
 
 /* Main Window */

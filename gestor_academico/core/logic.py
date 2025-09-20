@@ -248,6 +248,56 @@ def update_group_settings(group_name: str, new_settings: Dict[str, Any]):
 
     data_manager.save_group_config(group_name, config)
 
+def add_students_from_csv(group_name: str, file_path: str) -> Dict[str, int]:
+    """
+    Adds students to a group from a CSV file.
+    The CSV should have a header, and one column should contain student names.
+    Recognized header names are 'Name', 'Student Name', 'Nombre', 'Estudiante'.
+    """
+    config = data_manager.load_group_config(group_name)
+    if not config:
+        raise ValueError(f"Group '{group_name}' not found.")
+
+    students = config.get("students", [])
+    existing_names = {s['name'].lower() for s in students}
+
+    added_count = 0
+    skipped_count = 0
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        try:
+            header = next(reader)
+        except StopIteration:
+            raise ValueError("CSV file is empty.")
+
+        # Find the name column
+        name_col_idx = -1
+        possible_headers = ['name', 'student name', 'nombre', 'estudiante']
+        for idx, h in enumerate(header):
+            if h.lower() in possible_headers:
+                name_col_idx = idx
+                break
+
+        if name_col_idx == -1:
+            raise ValueError("CSV file must have a header with 'Name' or 'Nombre'.")
+
+        for row in reader:
+            if not row or not row[name_col_idx].strip():
+                continue # Skip empty rows
+
+            student_name = row[name_col_idx].strip()
+            if student_name.lower() not in existing_names:
+                # Re-using the single-add function is clean
+                add_student_to_group(group_name, student_name)
+                # We need to update our set of existing names for the next iteration
+                existing_names.add(student_name.lower())
+                added_count += 1
+            else:
+                skipped_count += 1
+
+    return {"added": added_count, "skipped": skipped_count}
+
 # --- Grading Logic ---
 
 def get_grading_periods(group_name: str) -> List[Dict[str, Any]]:
