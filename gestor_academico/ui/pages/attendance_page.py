@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (QWidget, QHBoxLayout, QVBoxLayout, QLabel, QCombo
                                QCalendarWidget, QTableWidget, QProgressBar, QPushButton,
                                QTableWidgetItem, QHeaderView, QMessageBox)
 from PySide6.QtCore import Qt, QDate
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QTextCharFormat, QFont
 
 from gestor_academico.core import logic
 from gestor_academico.ui.widgets.status_combobox import StatusComboBox
@@ -50,6 +50,7 @@ class AttendancePage(QWidget):
 
         self.calendar = QCalendarWidget()
         self.calendar.setSelectedDate(QDate.currentDate())
+        self.calendar.currentPageChanged.connect(self._update_attendance_view)
         layout.addWidget(self.calendar)
 
         return left_widget
@@ -132,6 +133,8 @@ class AttendancePage(QWidget):
 
     def _update_attendance_view(self):
         """Loads and displays attendance data for the selected group and date."""
+        self._highlight_scheduled_dates()
+
         group_name = self.group_combo.currentText()
         selected_date = self.calendar.selectedDate().toString("yyyy-MM-dd")
 
@@ -179,6 +182,37 @@ class AttendancePage(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo cargar la asistencia: {e}")
             self.attendance_table.setRowCount(0)
+
+    def _highlight_scheduled_dates(self):
+        """Highlights the dates on the calendar where classes are scheduled."""
+        # First, clear all previous formatting by setting a default format
+        default_format = QTextCharFormat()
+        self.calendar.setDateTextFormat(QDate(), default_format)
+
+        group_name = self.group_combo.currentText()
+        if not group_name:
+            return
+
+        # Define the format for scheduled days
+        highlight_format = QTextCharFormat()
+        highlight_format.setFontWeight(QFont.Weight.Bold)
+        highlight_format.setBackground(QColor("#eef5ff"))
+
+        # Get date range for the visible month
+        year = self.calendar.yearShown()
+        month = self.calendar.monthShown()
+        start_of_month = QDate(year, month, 1).toString("yyyy-MM-dd")
+        # Go to the end of the month to be safe across month lengths
+        end_of_month = QDate(year, month, 1).addMonths(1).addDays(-1).toString("yyyy-MM-dd")
+
+        try:
+            class_dates = logic.generate_class_dates(group_name, start_of_month, end_of_month)
+            for date_str in class_dates:
+                q_date = QDate.fromString(date_str, "yyyy-MM-dd")
+                self.calendar.setDateTextFormat(q_date, highlight_format)
+        except Exception as e:
+            # This is a non-critical feature, so just print the error
+            print(f"Could not highlight schedule: {e}")
 
     def _style_row_by_status(self, row, status):
         """Applies a background color to a row based on attendance status."""

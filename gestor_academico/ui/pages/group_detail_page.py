@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
                                QTabWidget, QTableWidget, QPushButton, QFormLayout,
                                QSpinBox, QHeaderView, QTableWidgetItem, QMessageBox,
-                               QInputDialog)
-from PySide6.QtCore import Qt, Signal
+                               QInputDialog, QFileDialog, QCheckBox, QTimeEdit)
+from PySide6.QtCore import Qt, Signal, QTime
 
 from gestor_academico.core import logic
 
@@ -39,8 +39,10 @@ class GroupDetailPage(QWidget):
         # Create tabs
         self.students_tab = self._create_students_tab()
         self.settings_tab = self._create_settings_tab()
+        self.schedule_tab = self._create_schedule_tab()
 
         self.tab_widget.addTab(self.students_tab, "Alumnos")
+        self.tab_widget.addTab(self.schedule_tab, "Horario")
         self.tab_widget.addTab(self.settings_tab, "Configuración")
 
     def set_group(self, group_name: str):
@@ -74,6 +76,14 @@ class GroupDetailPage(QWidget):
             # Populate Settings Tab
             self.group_name_input.setText(group_data.get("name", ""))
             self.threshold_input.setValue(int(group_data.get("attendance_threshold", 80)))
+
+            # Populate Schedule Tab
+            schedule = group_data.get("schedule", {})
+            for day, widgets in self.schedule_widgets.items():
+                day_data = schedule.get(day, {})
+                widgets["active"].setChecked(day_data.get("active", False))
+                widgets["start"].setTime(QTime.fromString(day_data.get("start", "00:00"), "HH:mm"))
+                widgets["end"].setTime(QTime.fromString(day_data.get("end", "00:00"), "HH:mm"))
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los detalles del grupo: {e}")
@@ -232,3 +242,46 @@ class GroupDetailPage(QWidget):
             self.load_group_data() # Refresh the student list
         except Exception as e:
             QMessageBox.critical(self, "Error de Importación", f"No se pudo importar el archivo: {e}")
+
+    def _create_schedule_tab(self) -> QWidget:
+        """Creates the UI for the 'Schedule' management tab."""
+        tab_widget = QWidget()
+        layout = QVBoxLayout(tab_widget)
+        layout.setAlignment(Qt.AlignTop)
+
+        form_layout = QFormLayout()
+        self.schedule_widgets = {}
+
+        days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+        for day in days:
+            day_layout = QHBoxLayout()
+
+            checkbox = QCheckBox("Activo")
+            start_time = QTimeEdit()
+            end_time = QTimeEdit()
+
+            day_layout.addWidget(checkbox)
+            day_layout.addWidget(QLabel("De:"))
+            day_layout.addWidget(start_time)
+            day_layout.addWidget(QLabel("a:"))
+            day_layout.addWidget(end_time)
+            day_layout.addStretch()
+
+            form_layout.addRow(day, day_layout)
+            self.schedule_widgets[day] = {
+                "active": checkbox,
+                "start": start_time,
+                "end": end_time
+            }
+
+        layout.addLayout(form_layout)
+
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        self.save_schedule_button = QPushButton("Guardar Horario")
+        self.save_schedule_button.setObjectName("PrimaryButton")
+        self.save_schedule_button.clicked.connect(self._on_save_schedule)
+        button_layout.addWidget(self.save_schedule_button)
+        layout.addLayout(button_layout)
+
+        return tab_widget

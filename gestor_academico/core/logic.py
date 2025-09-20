@@ -28,7 +28,13 @@ def create_new_group(group_name: str, prefix: str = "") -> Dict[str, Any]:
             "Parcial 3": {"start": "", "end": ""},
         },
         "schedule": {
-            "lunes": "", "martes": "", "miércoles": "", "jueves": "", "viernes": ""
+            "Lunes": {"active": False, "start": "10:00", "end": "12:00"},
+            "Martes": {"active": False, "start": "10:00", "end": "12:00"},
+            "Miércoles": {"active": False, "start": "10:00", "end": "12:00"},
+            "Jueves": {"active": False, "start": "10:00", "end": "12:00"},
+            "Viernes": {"active": False, "start": "10:00", "end": "12:00"},
+            "Sábado": {"active": False, "start": "10:00", "end": "12:00"},
+            "Domingo": {"active": False, "start": "10:00", "end": "12:00"}
         },
         "grading_periods": [
             {"id": "p_1", "name": "Parcial 1", "assignments": []},
@@ -299,6 +305,43 @@ def add_students_from_csv(group_name: str, file_path: str) -> Dict[str, int]:
     return {"added": added_count, "skipped": skipped_count}
 
 # --- Grading Logic ---
+
+def generate_class_dates(group_name: str, start_date_str: str, end_date_str: str) -> List[str]:
+    """
+    Generates a list of class dates within a range, based on the group's schedule.
+    """
+    from datetime import datetime, timedelta
+
+    config = data_manager.load_group_config(group_name)
+    schedule = config.get("schedule", {})
+
+    try:
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return [] # Invalid date format
+
+    # Python's weekday(): Monday is 0 and Sunday is 6
+    # Our schedule uses Spanish names.
+    day_mapping = {
+        "Lunes": 0, "Martes": 1, "Miércoles": 2, "Jueves": 3,
+        "Viernes": 4, "Sábado": 5, "Domingo": 6
+    }
+
+    active_days = set()
+    for day_name, day_info in schedule.items():
+        if day_info.get("active"):
+            if day_name in day_mapping:
+                active_days.add(day_mapping[day_name])
+
+    class_dates = []
+    current_date = start_date
+    while current_date <= end_date:
+        if current_date.weekday() in active_days:
+            class_dates.append(current_date.isoformat())
+        current_date += timedelta(days=1)
+
+    return class_dates
 
 def get_grading_periods(group_name: str) -> List[Dict[str, Any]]:
     """Returns the list of grading periods for a given group."""
