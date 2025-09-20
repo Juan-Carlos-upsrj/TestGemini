@@ -2,6 +2,7 @@ import csv
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox,
                                QTableWidget, QPushButton, QHeaderView, QTableWidgetItem,
                                QFileDialog, QMessageBox)
+from typing import List, Dict, Any
 
 from gestor_academico.core import logic, reporting
 
