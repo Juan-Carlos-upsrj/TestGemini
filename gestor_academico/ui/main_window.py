@@ -222,7 +222,7 @@ class MainWindow(QMainWindow):
         current_widget = self.stacked_widget.widget(index)
         if isinstance(current_widget, AttendancePage):
             # If we navigate to the attendance page, refresh its group list
-            current_widget.reload_groups()
+            current_widget.refresh_data()
         elif isinstance(current_widget, GroupDetailPage):
             # This is a good place to refresh the group details as well,
             # in case they were changed elsewhere.

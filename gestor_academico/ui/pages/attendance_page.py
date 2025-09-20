@@ -26,8 +26,12 @@ class AttendancePage(QWidget):
         self.main_layout.addWidget(self.left_column, 1) # Proportion 1
         self.main_layout.addWidget(self.right_column, 2) # Proportion 2
 
+        # Connect signals now that all widgets are created
+        self.group_combo.currentTextChanged.connect(self._update_attendance_view)
+        self.calendar.selectionChanged.connect(self._update_attendance_view)
+
         # Initial data load
-        self._update_attendance_view()
+        self.refresh_data()
 
     def _create_left_column(self) -> QWidget:
         """Creates the left column with group selector and calendar."""
@@ -40,17 +44,14 @@ class AttendancePage(QWidget):
 
         group_label = QLabel("Grupo")
         self.group_combo = QComboBox()
-        self.group_combo.currentTextChanged.connect(self._update_attendance_view)
 
         layout.addWidget(group_label)
         layout.addWidget(self.group_combo)
 
         self.calendar = QCalendarWidget()
         self.calendar.setSelectedDate(QDate.currentDate())
-        self.calendar.selectionChanged.connect(self._update_attendance_view)
         layout.addWidget(self.calendar)
 
-        self.reload_groups()
         return left_widget
 
     def _create_right_column(self) -> QWidget:
@@ -114,8 +115,8 @@ class AttendancePage(QWidget):
         layout.addWidget(self.summary_text_label)
         return summary_widget
 
-    def reload_groups(self):
-        """Reloads the list of groups in the combo box."""
+    def refresh_data(self):
+        """Public method to refresh all data, starting with the group list."""
         current_group = self.group_combo.currentText()
         self.group_combo.clear()
         try:
@@ -123,6 +124,9 @@ class AttendancePage(QWidget):
             self.group_combo.addItems(groups)
             if current_group in groups:
                 self.group_combo.setCurrentText(current_group)
+            # This will trigger _update_attendance_view via the signal if the text changes,
+            # or we call it manually if it's the same.
+            self._update_attendance_view()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los grupos: {e}")
 
