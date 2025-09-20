@@ -10,6 +10,7 @@ from gestor_academico.core import logic
 from .widgets.group_card import GroupCard
 from .pages.attendance_page import AttendancePage
 from .pages.group_detail_page import GroupDetailPage
+from .pages.grades_page import GradesPage
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -75,8 +76,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.btn_config)
 
         # Connect buttons to change pages
-        self.btn_groups.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(0))
-        self.btn_asistencia.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(1))
+        self.btn_groups.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.groups_page))
+        self.btn_asistencia.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.attendance_page))
+        self.btn_calificaciones.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.grades_page))
         # ... connect other buttons as pages are created
 
         return sidebar_widget
@@ -95,10 +97,12 @@ class MainWindow(QMainWindow):
         self.attendance_page = AttendancePage()
         self.group_detail_page = GroupDetailPage()
         self.group_detail_page.backRequested.connect(lambda: self.stacked_widget.setCurrentWidget(self.groups_page))
+        self.grades_page = GradesPage()
 
         self.stacked_widget.addWidget(self.groups_page)
         self.stacked_widget.addWidget(self.attendance_page)
         self.stacked_widget.addWidget(self.group_detail_page)
+        self.stacked_widget.addWidget(self.grades_page)
 
         self.stacked_widget.currentChanged.connect(self._on_page_changed)
 
@@ -223,13 +227,28 @@ class MainWindow(QMainWindow):
             # This is a good place to refresh the group details as well,
             # in case they were changed elsewhere.
             current_widget.load_group_data()
+        elif isinstance(current_widget, GradesPage):
+            current_widget.refresh_data()
 
 
 # This block is for testing the window directly
 if __name__ == '__main__':
     # Create some dummy data for testing
-    logic.create_new_group("Grupo A")
-    logic.create_new_group("Grupo B", prefix="IAEV-")
+    if not logic.get_group_list():
+        print("No groups found, creating dummy data for demonstration...")
+        try:
+            calc_group = "Grupo de Cálculo"
+            logic.create_new_group(calc_group)
+            logic.add_student_to_group(calc_group, "Sofia Rodriguez")
+            logic.add_student_to_group(calc_group, "Mateo Vargas")
+            logic.add_student_to_group(calc_group, "Isabella Perez")
+            logic.add_student_to_group(calc_group, "Alejandro Gomez")
+            logic.add_student_to_group(calc_group, "Camila Torres")
+
+            logic.create_new_group("Lab. de Física", prefix="IAEV-")
+            logic.create_new_group("Taller de Redacción")
+        except ValueError as e:
+            print(f"Dummy data might already exist: {e}")
 
     app = QApplication(sys.argv)
 

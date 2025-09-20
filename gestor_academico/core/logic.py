@@ -29,7 +29,12 @@ def create_new_group(group_name: str, prefix: str = "") -> Dict[str, Any]:
         },
         "schedule": {
             "lunes": "", "martes": "", "miércoles": "", "jueves": "", "viernes": ""
-        }
+        },
+        "grading_periods": [
+            {"id": "p_1", "name": "Parcial 1", "assignments": []},
+            {"id": "p_2", "name": "Parcial 2", "assignments": []},
+            {"id": "p_3", "name": "Parcial 3", "assignments": []}
+        ]
     }
 
     data_manager.save_group_config(full_name, default_config)
@@ -240,5 +245,55 @@ def update_group_settings(group_name: str, new_settings: Dict[str, Any]):
         # To keep it simple, we'll just update the config file.
         # A more robust solution would involve a `rename_group` function in data_manager.
         config["name"] = new_name # Update the name inside the config
+
+    data_manager.save_group_config(group_name, config)
+
+# --- Grading Logic ---
+
+def get_grading_periods(group_name: str) -> List[Dict[str, Any]]:
+    """Returns the list of grading periods for a given group."""
+    config = data_manager.load_group_config(group_name)
+    return config.get("grading_periods", [])
+
+def add_assignment(group_name: str, period_id: str, name: str, weight: float) -> Dict[str, Any]:
+    """Adds a new assignment to a specific grading period."""
+    config = data_manager.load_group_config(group_name)
+    periods = config.get("grading_periods", [])
+
+    period_found = False
+    for period in periods:
+        if period.get("id") == period_id:
+            assignments = period.get("assignments", [])
+            new_id = f"a_{len(assignments) + 1}"
+            new_assignment = {"id": new_id, "name": name, "weight": weight, "grades": {}}
+            assignments.append(new_assignment)
+            period_found = True
+            break
+
+    if not period_found:
+        raise ValueError(f"Grading period with id '{period_id}' not found.")
+
+    data_manager.save_group_config(group_name, config)
+    return new_assignment
+
+def save_grades_for_assignment(group_name: str, period_id: str, assignment_id: str, grades: Dict[str, float]):
+    """Saves the grades for a specific assignment."""
+    config = data_manager.load_group_config(group_name)
+    periods = config.get("grading_periods", [])
+
+    assignment_found = False
+    for period in periods:
+        if period.get("id") == period_id:
+            for assignment in period.get("assignments", []):
+                if assignment.get("id") == assignment_id:
+                    # Merge new grades with existing ones
+                    assignment["grades"].update(grades)
+                    assignment_found = True
+                    break
+        if assignment_found:
+            break
+
+    if not assignment_found:
+        raise ValueError(f"Assignment with id '{assignment_id}' not found in period '{period_id}'.")
 
     data_manager.save_group_config(group_name, config)
