@@ -11,6 +11,7 @@ from .widgets.group_card import GroupCard
 from .pages.attendance_page import AttendancePage
 from .pages.group_detail_page import GroupDetailPage
 from .pages.grades_page import GradesPage
+from .pages.reports_page import ReportsPage
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -79,7 +80,7 @@ class MainWindow(QMainWindow):
         self.btn_groups.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.groups_page))
         self.btn_asistencia.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.attendance_page))
         self.btn_calificaciones.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.grades_page))
-        # ... connect other buttons as pages are created
+        self.btn_reportes.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.reports_page))
 
         return sidebar_widget
 
@@ -98,11 +99,13 @@ class MainWindow(QMainWindow):
         self.group_detail_page = GroupDetailPage()
         self.group_detail_page.backRequested.connect(lambda: self.stacked_widget.setCurrentWidget(self.groups_page))
         self.grades_page = GradesPage()
+        self.reports_page = ReportsPage()
 
         self.stacked_widget.addWidget(self.groups_page)
         self.stacked_widget.addWidget(self.attendance_page)
         self.stacked_widget.addWidget(self.group_detail_page)
         self.stacked_widget.addWidget(self.grades_page)
+        self.stacked_widget.addWidget(self.reports_page)
 
         self.stacked_widget.currentChanged.connect(self._on_page_changed)
 
@@ -228,6 +231,8 @@ class MainWindow(QMainWindow):
             # in case they were changed elsewhere.
             current_widget.load_group_data()
         elif isinstance(current_widget, GradesPage):
+            current_widget.refresh_data()
+        elif isinstance(current_widget, ReportsPage):
             current_widget.refresh_data()
 
 
