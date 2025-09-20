@@ -100,6 +100,8 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.attendance_page)
         self.stacked_widget.addWidget(self.group_detail_page)
 
+        self.stacked_widget.currentChanged.connect(self._on_page_changed)
+
         layout.addWidget(self.stacked_widget)
         return content_widget
 
@@ -210,6 +212,17 @@ class MainWindow(QMainWindow):
         """Handles the 'viewRequested' signal from a GroupCard."""
         self.group_detail_page.set_group(group_name)
         self.stacked_widget.setCurrentWidget(self.group_detail_page)
+
+    def _on_page_changed(self, index: int):
+        """Slot for when the current page in the QStackedWidget changes."""
+        current_widget = self.stacked_widget.widget(index)
+        if isinstance(current_widget, AttendancePage):
+            # If we navigate to the attendance page, refresh its group list
+            current_widget.reload_groups()
+        elif isinstance(current_widget, GroupDetailPage):
+            # This is a good place to refresh the group details as well,
+            # in case they were changed elsewhere.
+            current_widget.load_group_data()
 
 
 # This block is for testing the window directly
