@@ -18,5 +18,7 @@ dist/
 *.spec
 
 # Data files
+# We exclude the user's data from being committed
+GestorAsistencia/
 *.csv
 *.json

@@ -4,7 +4,6 @@ import csv
 from pathlib import Path
 from typing import List, Dict, Any
 
-# The treasure chest for our data is in the user's Documents folder
 DATA_DIR = Path.home() / "Documents" / "GestorAsistencia"
 GROUPS_DIR = DATA_DIR / "groups"
 
@@ -34,7 +33,7 @@ def save_group_config(group_name: str, config_data: Dict[str, Any]):
     group_dir.mkdir(exist_ok=True)
     config_path = get_group_config_path(group_name)
     with open(config_path, 'w', encoding='utf-8') as f:
-        json.dump(config_data, f, indent=4)
+        json.dump(config_data, f, indent=4, ensure_ascii=False)
 
 def load_group_config(group_name: str) -> Dict[str, Any]:
     """Loads a group's configuration from its JSON file."""
@@ -45,10 +44,7 @@ def load_group_config(group_name: str) -> Dict[str, Any]:
         return json.load(f)
 
 def save_attendance(group_name: str, attendance_data: List[Dict[str, Any]]):
-    """
-    Saves a group's attendance data to a CSV file in long format.
-    The expected headers are ['date', 'student_id', 'status', 'notes'].
-    """
+    """Saves a group's attendance data to a CSV file in long format."""
     ensure_data_directory_exists()
     path = get_group_attendance_path(group_name)
     headers = ['date', 'student_id', 'status', 'notes']
@@ -71,14 +67,7 @@ def load_attendance(group_name: str) -> List[Dict[str, Any]]:
 
 def delete_group_data(group_name: str):
     """Deletes a group's entire directory."""
+    import shutil
     group_dir = GROUPS_DIR / group_name
-    if not group_dir.exists():
-        return
-
-    # A bit of recursion to scupper all files and folders within
-    for root, dirs, files in os.walk(group_dir, topdown=False):
-        for name in files:
-            os.remove(os.path.join(root, name))
-        for name in dirs:
-            os.rmdir(os.path.join(root, name))
-    os.rmdir(group_dir)
+    if group_dir.exists() and group_dir.is_dir():
+        shutil.rmtree(group_dir)
