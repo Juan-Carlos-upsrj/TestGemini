@@ -28,6 +28,7 @@ class MainWindow(QMainWindow):
         self.btn_asistencia.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.attendance_page))
         self.btn_calificaciones.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.grades_page))
         self.btn_reportes.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.reports_page))
+        self.btn_config.clicked.connect(self._on_config_button_clicked)
         return sidebar_widget
     def _create_content_area(self):
         content_widget = QWidget(); content_widget.setObjectName("ContentArea")
@@ -76,3 +77,23 @@ class MainWindow(QMainWindow):
     def _on_page_changed(self, index):
         widget = self.stacked_widget.widget(index)
         if hasattr(widget, 'refresh_data'): widget.refresh_data()
+
+    def _on_config_button_clicked(self):
+        """Navigates to the settings tab of the first available group."""
+        try:
+            groups = logic.get_group_list()
+            if not groups:
+                QMessageBox.information(self, "Información", "No hay grupos para configurar. Por favor, cree un grupo primero.")
+                return
+
+            first_group = groups[0]
+            self.group_detail_page.set_group(first_group)
+            self.stacked_widget.setCurrentWidget(self.group_detail_page)
+
+            # Find the "Configuración" tab and set it as current
+            for i in range(self.group_detail_page.tab_widget.count()):
+                if self.group_detail_page.tab_widget.tabText(i) == "Configuración":
+                    self.group_detail_page.tab_widget.setCurrentIndex(i)
+                    break
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo navegar a la configuración: {e}")

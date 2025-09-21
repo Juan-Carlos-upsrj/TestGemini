@@ -178,7 +178,13 @@ def generate_class_dates(group_name: str, start_date_str: str, end_date_str: str
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
     except ValueError: return []
     day_mapping = {"Lunes": 0, "Martes": 1, "Miércoles": 2, "Jueves": 3, "Viernes": 4, "Sábado": 5, "Domingo": 6}
-    active_days = {day_mapping[day] for day, info in schedule.items() if info.get("active")}
+    active_days = set()
+    for day, info in schedule.items():
+        # Defensive check for backward compatibility with old data format
+        if isinstance(info, dict) and info.get("active"):
+            if day in day_mapping:
+                active_days.add(day_mapping[day])
+
     class_dates = []
     current_date = start_date
     while current_date <= end_date:
