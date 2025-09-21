@@ -245,4 +245,3 @@ class GroupDetailPage(QWidget):
             QMessageBox.information(self, "Éxito", "Horario guardado.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo guardar el horario: {e}")
-EOF

@@ -121,4 +121,3 @@ class GradesPage(QWidget):
                 self.refresh_assignments_table()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"{e}")
-EOF

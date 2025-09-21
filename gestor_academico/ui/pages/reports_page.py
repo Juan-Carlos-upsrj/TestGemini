@@ -108,4 +108,3 @@ class ReportsPage(QWidget):
             QMessageBox.information(self, "Éxito", f"Reporte exportado a:\n{file_path}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"{e}")
-EOF

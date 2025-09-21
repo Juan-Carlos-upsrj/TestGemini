@@ -200,4 +200,3 @@ class AttendancePage(QWidget):
             self._update_attendance_view()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo guardar la asistencia: {e}")
-EOF
