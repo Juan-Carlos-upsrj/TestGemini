@@ -84,17 +84,53 @@ def get_group_details(group_name: str) -> Dict[str, Any]:
         student["is_at_risk"] = percentage < threshold
     return config
 
-def add_student_to_group(group_name: str, student_name: str) -> Dict[str, Any]:
+def add_student_to_group(group_name: str, student_name: str, config: Dict = None) -> Dict[str, Any]:
+    """Adds a single student. Can accept an existing config to avoid re-reading the file."""
     print(f"LOG: Adding student '{student_name}' to group '{group_name}'")
-    config = data_manager.load_group_config(group_name)
+
+    # If no config is passed, load it. Otherwise, use the provided one.
+    config_was_passed = config is not None
+    if not config_was_passed:
+        config = data_manager.load_group_config(group_name)
+
     if not config: raise ValueError(f"Group '{group_name}' not found.")
+
     students = config.get("students", [])
+    # Simple ID generation based on current student count + 1
     new_id = f"s_{len(students) + 1}"
     new_student = {"id": new_id, "name": student_name}
     students.append(new_student)
     config["students"] = students
-    data_manager.save_group_config(group_name, config)
+
+    # Only save if we loaded the config inside this function
+    if not config_was_passed:
+        data_manager.save_group_config(group_name, config)
+
     return new_student
+
+def add_multiple_students(group_name: str, names: List[str]) -> Dict[str, int]:
+    """Adds a list of students to a group, skipping duplicates."""
+    print(f"LOG: Adding multiple students to group '{group_name}'")
+    config = data_manager.load_group_config(group_name)
+    if not config: raise ValueError(f"Group '{group_name}' not found.")
+
+    students = config.get("students", [])
+    existing_names = {s['name'].lower().strip() for s in students}
+    added_count, skipped_count = 0, 0
+
+    for name in names:
+        clean_name = name.strip()
+        if clean_name and clean_name.lower() not in existing_names:
+            # Pass the already-loaded config to avoid repeated file I/O
+            add_student_to_group(group_name, clean_name, config=config)
+            existing_names.add(clean_name.lower())
+            added_count += 1
+        else:
+            skipped_count += 1
+
+    # Save the config once after all students have been added
+    data_manager.save_group_config(group_name, config)
+    return {"added": added_count, "skipped": skipped_count}
 
 def add_students_from_csv(group_name: str, file_path: str) -> Dict[str, int]:
     print(f"LOG: Importing students from '{file_path}' to group '{group_name}'")

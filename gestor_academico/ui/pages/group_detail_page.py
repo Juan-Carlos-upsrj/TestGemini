@@ -7,6 +7,7 @@ from PySide6.QtCore import Qt, Signal, QTime, QDate
 from typing import List, Dict
 
 from gestor_academico.core import logic
+from ..dialogs.multiple_entry_dialog import MultipleEntryDialog
 
 class GroupDetailPage(QWidget):
     backRequested = Signal()
@@ -102,17 +103,20 @@ class GroupDetailPage(QWidget):
         self.edit_student_button = QPushButton("Editar Estudiante")
         self.remove_student_button = QPushButton("Eliminar Estudiante")
         self.import_csv_button = QPushButton("Importar desde CSV")
+        self.add_multiple_button = QPushButton("Añadir Varios")
 
         self.edit_student_button.setEnabled(False)
         self.remove_student_button.setEnabled(False)
 
         self.add_student_button.clicked.connect(self._on_add_student)
+        self.add_multiple_button.clicked.connect(self._on_add_multiple_students)
         self.edit_student_button.clicked.connect(self._on_edit_student)
         self.remove_student_button.clicked.connect(self._on_remove_student)
         self.import_csv_button.clicked.connect(self._on_import_from_csv)
 
         button_layout.addWidget(self.import_csv_button)
         button_layout.addSpacing(20)
+        button_layout.addWidget(self.add_multiple_button)
         button_layout.addWidget(self.add_student_button)
         button_layout.addWidget(self.edit_student_button)
         button_layout.addWidget(self.remove_student_button)
@@ -297,6 +301,26 @@ class GroupDetailPage(QWidget):
         except Exception as e:
             print(f"ERROR in _on_save_schedule: {e}")
             QMessageBox.critical(self, "Error", f"No se pudo guardar el horario: {e}")
+
+    def _on_add_multiple_students(self):
+        """Handles adding multiple students via a dialog."""
+        dialog = MultipleEntryDialog("Añadir Varios Alumnos",
+                                     "Pegue la lista de nombres (uno por línea):",
+                                     self)
+        if dialog.exec():
+            names = dialog.get_lines()
+            if not names:
+                return
+
+            try:
+                result = logic.add_multiple_students(self.group_name, names)
+                QMessageBox.information(self, "Importación Completa",
+                                        f"Se han añadido {result['added']} nuevos estudiantes.\n"
+                                        f"Se han omitido {result['skipped']} estudiantes (posiblemente duplicados).")
+                self.load_group_data() # Refresh the student list
+            except Exception as e:
+                print(f"ERROR in _on_add_multiple_students: {e}")
+                QMessageBox.critical(self, "Error de Importación", f"No se pudo añadir a los estudiantes: {e}")
 
     def _on_student_selection_changed(self):
         """Enables or disables student action buttons based on selection."""
