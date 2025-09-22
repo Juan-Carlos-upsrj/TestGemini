@@ -54,10 +54,14 @@ class GroupDetailPage(QWidget):
 
             # Students
             students = group_data.get("students", [])
-            self.students_table.setRowCount(len(students))
-            for row, student in enumerate(students):
-                self.students_table.setItem(row, 0, QTableWidgetItem(student["id"]))
-                self.students_table.setItem(row, 1, QTableWidgetItem(student["name"]))
+            if students:
+                self.students_stack.setCurrentWidget(self.students_table)
+                self.students_table.setRowCount(len(students))
+                for row, student in enumerate(students):
+                    self.students_table.setItem(row, 0, QTableWidgetItem(student["id"]))
+                    self.students_table.setItem(row, 1, QTableWidgetItem(student["name"]))
+            else:
+                self.students_stack.setCurrentWidget(self.empty_students_label)
 
             # Settings
             self.group_name_input.setText(group_data.get("name", ""))
@@ -74,6 +78,8 @@ class GroupDetailPage(QWidget):
     def _create_students_tab(self) -> QWidget:
         tab_widget = QWidget()
         layout = QVBoxLayout(tab_widget)
+        # A stack to hold either the table or the empty message
+        self.students_stack = QStackedWidget()
         self.students_table = QTableWidget()
         self.students_table.setColumnCount(2)
         self.students_table.setHorizontalHeaderLabels(["ID", "Nombre del Estudiante"])
@@ -81,7 +87,14 @@ class GroupDetailPage(QWidget):
         self.students_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.students_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.students_table.itemSelectionChanged.connect(self._on_student_selection_changed)
-        layout.addWidget(self.students_table)
+
+        self.empty_students_label = QLabel("No hay estudiantes en este grupo.\nAñade uno o impórtalos desde un CSV.")
+        self.empty_students_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.empty_students_label.setStyleSheet("color: #6b7280; font-style: italic;")
+
+        self.students_stack.addWidget(self.students_table)
+        self.students_stack.addWidget(self.empty_students_label)
+        layout.addWidget(self.students_stack)
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()

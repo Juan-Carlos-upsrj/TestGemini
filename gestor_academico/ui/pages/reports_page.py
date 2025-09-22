@@ -35,10 +35,19 @@ class ReportsPage(QWidget):
         controls_layout.addStretch(2)
         main_layout.addLayout(controls_layout)
 
+        self.report_stack = QStackedWidget()
         self.report_table = QTableWidget()
         self.report_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.report_table.verticalHeader().setVisible(False)
-        main_layout.addWidget(self.report_table)
+
+        self.empty_report_label = QLabel("No hay datos para mostrar. Genere un reporte para empezar.")
+        self.empty_report_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.empty_report_label.setStyleSheet("color: #6b7280; font-style: italic;")
+
+        self.report_stack.addWidget(self.report_table)
+        self.report_stack.addWidget(self.empty_report_label)
+        self.report_stack.setCurrentWidget(self.empty_report_label) # Start with empty message
+        main_layout.addWidget(self.report_stack)
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -85,14 +94,18 @@ class ReportsPage(QWidget):
             self.export_button.setEnabled(False)
 
     def _populate_report_table(self, headers: List[str], data_keys: List[str]):
-        self.report_table.setColumnCount(len(headers))
-        self.report_table.setHorizontalHeaderLabels(headers)
-        self.report_table.setRowCount(len(self.report_data))
-        for row_idx, row_data in enumerate(self.report_data):
-            for col_idx, key in enumerate(data_keys):
-                item_value = str(row_data.get(key, ''))
-                self.report_table.setItem(row_idx, col_idx, QTableWidgetItem(item_value))
-        self.report_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        if self.report_data:
+            self.report_stack.setCurrentWidget(self.report_table)
+            self.report_table.setColumnCount(len(headers))
+            self.report_table.setHorizontalHeaderLabels(headers)
+            self.report_table.setRowCount(len(self.report_data))
+            for row_idx, row_data in enumerate(self.report_data):
+                for col_idx, key in enumerate(data_keys):
+                    item_value = str(row_data.get(key, ''))
+                    self.report_table.setItem(row_idx, col_idx, QTableWidgetItem(item_value))
+            self.report_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        else:
+            self.report_stack.setCurrentWidget(self.empty_report_label)
 
     def _export_to_csv(self):
         if not self.report_data: return

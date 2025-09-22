@@ -31,6 +31,7 @@ class GradesPage(QWidget):
         controls_layout.addStretch(2)
         main_layout.addLayout(controls_layout)
 
+        self.assignments_stack = QStackedWidget()
         self.assignments_table = QTableWidget()
         self.assignments_table.setColumnCount(3)
         self.assignments_table.setHorizontalHeaderLabels(["Actividad", "Ponderación (%)", "Acciones"])
@@ -40,7 +41,14 @@ class GradesPage(QWidget):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         self.assignments_table.verticalHeader().setVisible(False)
         self.assignments_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        main_layout.addWidget(self.assignments_table)
+
+        self.empty_assignments_label = QLabel("No hay actividades en este periodo.\nAñade una para empezar.")
+        self.empty_assignments_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.empty_assignments_label.setStyleSheet("color: #6b7280; font-style: italic;")
+
+        self.assignments_stack.addWidget(self.assignments_table)
+        self.assignments_stack.addWidget(self.empty_assignments_label)
+        main_layout.addWidget(self.assignments_stack)
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -78,20 +86,26 @@ class GradesPage(QWidget):
             QMessageBox.critical(self, "Error", f"{e}")
 
     def refresh_assignments_table(self):
-        self.assignments_table.setRowCount(0)
         group_name = self.group_combo.currentText()
         period_id = self.period_combo.currentData()
-        if not group_name or not period_id: return
+        if not group_name or not period_id:
+            self.assignments_stack.setCurrentWidget(self.empty_assignments_label)
+            return
         try:
             periods = logic.get_grading_periods(group_name)
             self.current_assignments = next((p.get("assignments", []) for p in periods if p["id"] == period_id), [])
-            self.assignments_table.setRowCount(len(self.current_assignments))
-            for row, assignment in enumerate(self.current_assignments):
-                self.assignments_table.setItem(row, 0, QTableWidgetItem(assignment["name"]))
-                self.assignments_table.setItem(row, 1, QTableWidgetItem(str(assignment["weight"])))
-                edit_button = QPushButton("Registrar Calificaciones")
-                edit_button.clicked.connect(lambda ch, a=assignment: self._on_enter_grades(a))
-                self.assignments_table.setCellWidget(row, 2, edit_button)
+
+            if self.current_assignments:
+                self.assignments_stack.setCurrentWidget(self.assignments_table)
+                self.assignments_table.setRowCount(len(self.current_assignments))
+                for row, assignment in enumerate(self.current_assignments):
+                    self.assignments_table.setItem(row, 0, QTableWidgetItem(assignment["name"]))
+                    self.assignments_table.setItem(row, 1, QTableWidgetItem(str(assignment["weight"])))
+                    edit_button = QPushButton("Registrar Calificaciones")
+                    edit_button.clicked.connect(lambda ch, a=assignment: self._on_enter_grades(a))
+                    self.assignments_table.setCellWidget(row, 2, edit_button)
+            else:
+                self.assignments_stack.setCurrentWidget(self.empty_assignments_label)
         except Exception as e:
             print(f"ERROR in refresh_assignments_table: {e}")
             QMessageBox.critical(self, "Error", f"{e}")

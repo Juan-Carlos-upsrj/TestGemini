@@ -21,7 +21,8 @@ class AttendancePage(QWidget):
         self.main_layout.addWidget(self.left_column, 1)
         self.main_layout.addWidget(self.right_column, 2)
 
-        self.group_combo.currentTextChanged.connect(self._update_attendance_view)
+        self.group_combo.currentTextChanged.connect(self.refresh_periods)
+        self.period_combo.currentIndexChanged.connect(self._update_attendance_view)
         self.calendar.selectionChanged.connect(self._update_attendance_view)
         self.calendar.currentPageChanged.connect(self._update_attendance_view)
 
@@ -38,6 +39,10 @@ class AttendancePage(QWidget):
         self.group_combo = QComboBox()
         layout.addWidget(QLabel("Grupo"))
         layout.addWidget(self.group_combo)
+
+        self.period_combo = QComboBox()
+        layout.addWidget(QLabel("Periodo para Resaltar:"))
+        layout.addWidget(self.period_combo)
 
         self.calendar = QCalendarWidget()
         self.calendar.setSelectedDate(QDate.currentDate())
@@ -115,10 +120,25 @@ class AttendancePage(QWidget):
             if current_group in groups:
                 self.group_combo.setCurrentText(current_group)
             else:
-                self._update_attendance_view()
+                self.refresh_periods()
         except Exception as e:
             print(f"ERROR in refresh_data (attendance): {e}")
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los grupos: {e}")
+
+    def refresh_periods(self):
+        """Refreshes the grading periods combo box based on the selected group."""
+        self.period_combo.clear()
+        group_name = self.group_combo.currentText()
+        if not group_name:
+            self._update_attendance_view()
+            return
+        try:
+            periods = logic.get_grading_periods(group_name)
+            for period in periods:
+                self.period_combo.addItem(period["name"], userData=period)
+        except Exception as e:
+            print(f"ERROR in refresh_periods (attendance): {e}")
+            QMessageBox.critical(self, "Error", f"No se pudieron cargar los periodos: {e}")
 
     def _update_attendance_view(self):
         self._highlight_scheduled_dates()
@@ -170,20 +190,31 @@ class AttendancePage(QWidget):
             self.summary_text_label.setText("No hay estudiantes en este grupo.")
 
     def _highlight_scheduled_dates(self):
+        """Highlights the dates on the calendar where classes are scheduled within the selected period."""
         default_format = QTextCharFormat()
         self.calendar.setDateTextFormat(QDate(), default_format)
+
         group_name = self.group_combo.currentText()
-        if not group_name: return
+        selected_period = self.period_combo.currentData()
+
+        if not group_name or not selected_period:
+            return
+
+        start_date_str = selected_period.get("start_date")
+        end_date_str = selected_period.get("end_date")
+
+        if not start_date_str or not end_date_str:
+            return
+
         highlight_format = QTextCharFormat()
         highlight_format.setFontWeight(QFont.Weight.Bold)
         highlight_format.setBackground(QColor("#eef5ff"))
-        year, month = self.calendar.yearShown(), self.calendar.monthShown()
-        start_date = QDate(year, month, 1).toString("yyyy-MM-dd")
-        end_date = QDate(year, month, 1).addMonths(1).addDays(-1).toString("yyyy-MM-dd")
+
         try:
-            class_dates = logic.generate_class_dates(group_name, start_date, end_date)
+            class_dates = logic.generate_class_dates(group_name, start_date_str, end_date_str)
             for date_str in class_dates:
-                self.calendar.setDateTextFormat(QDate.fromString(date_str, "yyyy-MM-dd"), highlight_format)
+                q_date = QDate.fromString(date_str, "yyyy-MM-dd")
+                self.calendar.setDateTextFormat(q_date, highlight_format)
         except Exception as e:
             print(f"ERROR in _highlight_scheduled_dates: {e}")
 
