@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineE
                                QTabWidget, QTableWidget, QPushButton, QFormLayout,
                                QSpinBox, QHeaderView, QTableWidgetItem, QMessageBox,
                                QInputDialog, QFileDialog, QCheckBox, QTimeEdit,
-                               QGroupBox, QDateEdit)
+                               QGroupBox, QDateEdit, QStackedWidget)
 from PySide6.QtCore import Qt, Signal, QTime, QDate
 from typing import List, Dict
 
