@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox,
                                QTableWidget, QPushButton, QHeaderView, QTableWidgetItem,
                                QMessageBox, QInputDialog, QStackedWidget)
+from PySide6.QtCore import Qt
 from typing import List, Dict
 
 from gestor_academico.core import logic
