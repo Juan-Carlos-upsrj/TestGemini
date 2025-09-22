@@ -7,6 +7,7 @@ DEFAULT_ATTENDANCE_THRESHOLD = 80.0
 PRESENT_STATUSES = ["presente", "justificado"]
 
 def create_new_group(group_name: str, prefix: str = "") -> Dict[str, Any]:
+    print(f"LOG: Attempting to create new group: {group_name}")
     full_name = f"{prefix}{group_name}" if prefix else group_name
     if full_name in data_manager.list_groups():
         raise ValueError(f"El grupo '{full_name}' ya existe.")
@@ -84,6 +85,7 @@ def get_group_details(group_name: str) -> Dict[str, Any]:
     return config
 
 def add_student_to_group(group_name: str, student_name: str) -> Dict[str, Any]:
+    print(f"LOG: Adding student '{student_name}' to group '{group_name}'")
     config = data_manager.load_group_config(group_name)
     if not config: raise ValueError(f"Group '{group_name}' not found.")
     students = config.get("students", [])
@@ -95,6 +97,7 @@ def add_student_to_group(group_name: str, student_name: str) -> Dict[str, Any]:
     return new_student
 
 def add_students_from_csv(group_name: str, file_path: str) -> Dict[str, int]:
+    print(f"LOG: Importing students from '{file_path}' to group '{group_name}'")
     config = data_manager.load_group_config(group_name)
     if not config: raise ValueError(f"Group '{group_name}' not found.")
 
@@ -159,6 +162,7 @@ def get_attendance_for_date(group_name: str, target_date: str) -> Dict[str, Dict
     return date_attendance
 
 def save_attendance_for_date(group_name: str, target_date: str, new_records: List[Dict[str, str]]):
+    print(f"LOG: Saving attendance for group '{group_name}' on date '{target_date}'")
     all_attendance = data_manager.load_attendance(group_name)
     other_dates_attendance = [rec for rec in all_attendance if rec.get('date') != target_date]
     updated_date_records = [{"date": target_date, **rec} for rec in new_records]
@@ -166,6 +170,7 @@ def save_attendance_for_date(group_name: str, target_date: str, new_records: Lis
     data_manager.save_attendance(group_name, final_attendance)
 
 def update_group_settings(group_name: str, new_settings: Dict[str, Any]):
+    print(f"LOG: Updating settings for group '{group_name}'")
     config = data_manager.load_group_config(group_name)
     config.update(new_settings)
     data_manager.save_group_config(group_name, config)
@@ -198,6 +203,7 @@ def get_grading_periods(group_name: str) -> List[Dict[str, Any]]:
     return config.get("grading_periods", [])
 
 def add_assignment(group_name: str, period_id: str, name: str, weight: float) -> Dict[str, Any]:
+    print(f"LOG: Adding assignment '{name}' to period '{period_id}' in group '{group_name}'")
     config = data_manager.load_group_config(group_name)
     periods = config.get("grading_periods", [])
     period_found = False
@@ -214,6 +220,7 @@ def add_assignment(group_name: str, period_id: str, name: str, weight: float) ->
     return new_assignment
 
 def save_grades_for_assignment(group_name: str, period_id: str, assignment_id: str, grades: Dict[str, float]):
+    print(f"LOG: Saving grades for assignment '{assignment_id}' in group '{group_name}'")
     config = data_manager.load_group_config(group_name)
     assignment_found = False
     for period in config.get("grading_periods", []):

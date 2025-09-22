@@ -61,16 +61,28 @@ class MainWindow(QMainWindow):
                 card.deleteRequested.connect(self._on_delete_group_requested)
                 card.viewRequested.connect(self._on_view_group_details_requested)
                 self.groups_layout.addWidget(card)
-        except Exception as e: self.groups_layout.addWidget(QLabel(f"Error: {e}"))
+        except Exception as e:
+            print(f"ERROR in _load_group_cards: {e}")
+            self.groups_layout.addWidget(QLabel(f"Error: {e}"))
     def _on_create_group_clicked(self):
         text, ok = QInputDialog.getText(self, "Crear Grupo", "Nombre del grupo:")
         if ok and text:
-            try: logic.create_new_group(text); self._load_group_cards()
-            except ValueError as e: QMessageBox.warning(self, "Error", str(e))
+            try:
+                logic.create_new_group(text)
+                self._load_group_cards()
+                QMessageBox.information(self, "Éxito", f"Grupo '{text}' creado.")
+            except ValueError as e:
+                QMessageBox.warning(self, "Error", str(e))
     def _on_delete_group_requested(self, group_name):
         reply = QMessageBox.question(self, "Confirmar", f"Eliminar '{group_name}'?")
         if reply == QMessageBox.StandardButton.Yes:
-            logic.delete_group(group_name); self._load_group_cards()
+            try:
+                logic.delete_group(group_name)
+                self._load_group_cards()
+                QMessageBox.information(self, "Éxito", f"Grupo '{group_name}' eliminado.")
+            except Exception as e:
+                print(f"ERROR in _on_delete_group_requested: {e}")
+                QMessageBox.critical(self, "Error", f"No se pudo eliminar el grupo: {e}")
     def _on_view_group_details_requested(self, group_name):
         self.group_detail_page.set_group(group_name)
         self.stacked_widget.setCurrentWidget(self.group_detail_page)
@@ -96,4 +108,5 @@ class MainWindow(QMainWindow):
                     self.group_detail_page.tab_widget.setCurrentIndex(i)
                     break
         except Exception as e:
+            print(f"ERROR in _on_config_button_clicked: {e}")
             QMessageBox.critical(self, "Error", f"No se pudo navegar a la configuración: {e}")

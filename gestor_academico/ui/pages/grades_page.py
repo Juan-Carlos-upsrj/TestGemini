@@ -62,6 +62,7 @@ class GradesPage(QWidget):
             else:
                 self.refresh_periods()
         except Exception as e:
+            print(f"ERROR in refresh_data (grades): {e}")
             QMessageBox.critical(self, "Error", f"{e}")
 
     def refresh_periods(self):
@@ -73,6 +74,7 @@ class GradesPage(QWidget):
             for period in periods:
                 self.period_combo.addItem(period["name"], userData=period["id"])
         except Exception as e:
+            print(f"ERROR in refresh_periods (grades): {e}")
             QMessageBox.critical(self, "Error", f"{e}")
 
     def refresh_assignments_table(self):
@@ -91,6 +93,7 @@ class GradesPage(QWidget):
                 edit_button.clicked.connect(lambda ch, a=assignment: self._on_enter_grades(a))
                 self.assignments_table.setCellWidget(row, 2, edit_button)
         except Exception as e:
+            print(f"ERROR in refresh_assignments_table: {e}")
             QMessageBox.critical(self, "Error", f"{e}")
 
     def _on_add_assignment(self):
@@ -107,6 +110,7 @@ class GradesPage(QWidget):
             logic.add_assignment(group_name, period_id, name, float(weight))
             self.refresh_assignments_table()
         except Exception as e:
+            print(f"ERROR in _on_add_assignment: {e}")
             QMessageBox.critical(self, "Error", f"{e}")
 
     def _on_enter_grades(self, assignment):
@@ -120,4 +124,5 @@ class GradesPage(QWidget):
                 logic.save_grades_for_assignment(group_name, period_id, assignment["id"], new_grades)
                 self.refresh_assignments_table()
         except Exception as e:
+            print(f"ERROR in _on_enter_grades: {e}")
             QMessageBox.critical(self, "Error", f"{e}")

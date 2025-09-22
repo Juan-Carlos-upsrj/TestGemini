@@ -58,6 +58,7 @@ class ReportsPage(QWidget):
             if current_group in [self.group_combo.itemText(i) for i in range(self.group_combo.count())]:
                 self.group_combo.setCurrentText(current_group)
         except Exception as e:
+            print(f"ERROR in refresh_data (reports): {e}")
             QMessageBox.critical(self, "Error", f"{e}")
 
     def _generate_report(self):
@@ -78,7 +79,8 @@ class ReportsPage(QWidget):
             self._populate_report_table(headers, data_keys)
             self.export_button.setEnabled(True)
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"{e}")
+            print(f"ERROR in _generate_report: {e}")
+            QMessageBox.critical(self, "Error", f"No se pudo generar el reporte: {e}")
             self.report_table.setRowCount(0)
             self.export_button.setEnabled(False)
 
@@ -107,4 +109,5 @@ class ReportsPage(QWidget):
                 writer.writerows(self.report_data)
             QMessageBox.information(self, "Éxito", f"Reporte exportado a:\n{file_path}")
         except Exception as e:
+            print(f"ERROR in _export_to_csv: {e}")
             QMessageBox.critical(self, "Error", f"{e}")

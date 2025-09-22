@@ -62,6 +62,7 @@ class GroupDetailPage(QWidget):
             # Schedule
             self._populate_schedule_tab(group_data.get("schedule", {}))
         except Exception as e:
+            print(f"ERROR in load_group_data: {e}")
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los detalles: {e}")
             self.backRequested.emit()
 
@@ -152,8 +153,12 @@ class GroupDetailPage(QWidget):
     def _on_add_student(self):
         name, ok = QInputDialog.getText(self, "Añadir Estudiante", "Nombre:")
         if ok and name:
-            try: logic.add_student_to_group(self.group_name, name); self.load_group_data()
-            except Exception as e: QMessageBox.critical(self, "Error", f"{e}")
+            try:
+                logic.add_student_to_group(self.group_name, name)
+                self.load_group_data()
+            except Exception as e:
+                print(f"ERROR in _on_add_student: {e}")
+                QMessageBox.critical(self, "Error", f"{e}")
 
     def _on_remove_student(self):
         selected_items = self.students_table.selectedItems()
@@ -163,8 +168,12 @@ class GroupDetailPage(QWidget):
         student_name = self.students_table.item(row, 1).text()
         reply = QMessageBox.question(self, "Confirmar", f"Eliminar a '{student_name}'?")
         if reply == QMessageBox.StandardButton.Yes:
-            try: logic.remove_student_from_group(self.group_name, student_id); self.load_group_data()
-            except Exception as e: QMessageBox.critical(self, "Error", f"{e}")
+            try:
+                logic.remove_student_from_group(self.group_name, student_id)
+                self.load_group_data()
+            except Exception as e:
+                print(f"ERROR in _on_remove_student: {e}")
+                QMessageBox.critical(self, "Error", f"{e}")
 
     def _on_edit_student(self):
         selected_items = self.students_table.selectedItems()
@@ -174,8 +183,12 @@ class GroupDetailPage(QWidget):
         current_name = self.students_table.item(row, 1).text()
         new_name, ok = QInputDialog.getText(self, "Editar Nombre", "Nuevo nombre:", text=current_name)
         if ok and new_name and new_name != current_name:
-            try: logic.update_student_in_group(self.group_name, student_id, new_name); self.load_group_data()
-            except Exception as e: QMessageBox.critical(self, "Error", f"{e}")
+            try:
+                logic.update_student_in_group(self.group_name, student_id, new_name)
+                self.load_group_data()
+            except Exception as e:
+                print(f"ERROR in _on_edit_student: {e}")
+                QMessageBox.critical(self, "Error", f"{e}")
 
     def _populate_periods_settings(self, periods: List[Dict]):
         while self.periods_settings_layout.count():
@@ -220,6 +233,7 @@ class GroupDetailPage(QWidget):
             QMessageBox.information(self, "Éxito", "Configuración guardada.")
             self.load_group_data()
         except Exception as e:
+            print(f"ERROR in _on_save_settings: {e}")
             QMessageBox.critical(self, "Error", f"No se pudo guardar la configuración: {e}")
 
     def _on_import_from_csv(self):
@@ -230,6 +244,7 @@ class GroupDetailPage(QWidget):
             QMessageBox.information(self, "Éxito", f"Añadidos: {result['added']}.\nOmitidos: {result['skipped']}.")
             self.load_group_data()
         except Exception as e:
+            print(f"ERROR in _on_import_from_csv: {e}")
             QMessageBox.critical(self, "Error", f"No se pudo importar: {e}")
 
     def _on_save_schedule(self):
@@ -244,4 +259,5 @@ class GroupDetailPage(QWidget):
             logic.update_group_settings(self.group_name, {"schedule": new_schedule})
             QMessageBox.information(self, "Éxito", "Horario guardado.")
         except Exception as e:
+            print(f"ERROR in _on_save_schedule: {e}")
             QMessageBox.critical(self, "Error", f"No se pudo guardar el horario: {e}")

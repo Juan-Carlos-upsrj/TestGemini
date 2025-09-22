@@ -5,9 +5,9 @@ from PySide6.QtGui import QAction
 class GroupCard(QFrame):
     deleteRequested = Signal(str)
     viewRequested = Signal(str)
-    def __init__(self, group_name: str, student_count: int, at_risk_percentage: float, parent=None):
+    def __init__(self, name: str, student_count: int, at_risk_percentage: float, parent=None):
         super().__init__(parent)
-        self.group_name = group_name
+        self.group_name = name # Internally we can still call it group_name
         self.setObjectName("GroupCard")
         self.setCursor(Qt.PointingHandCursor)
         main_layout = QVBoxLayout(self)
@@ -19,7 +19,7 @@ class GroupCard(QFrame):
         content_layout.setContentsMargins(15, 10, 15, 15)
         content_layout.setSpacing(5)
         main_layout.addWidget(content_widget)
-        content_layout.addWidget(QLabel(group_name, objectName="CardTitle"))
+        content_layout.addWidget(QLabel(name, objectName="CardTitle"))
         content_layout.addWidget(QLabel(f"{student_count} estudiantes", objectName="CardSubtitle"))
         content_layout.addStretch()
         progress_layout = QHBoxLayout()

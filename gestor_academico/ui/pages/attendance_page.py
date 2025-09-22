@@ -108,6 +108,7 @@ class AttendancePage(QWidget):
             else:
                 self._update_attendance_view()
         except Exception as e:
+            print(f"ERROR in refresh_data (attendance): {e}")
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los grupos: {e}")
 
     def _update_attendance_view(self):
@@ -145,6 +146,7 @@ class AttendancePage(QWidget):
                     present_count += 1
             self._update_summary(len(students), present_count)
         except Exception as e:
+            print(f"ERROR in _update_attendance_view: {e}")
             QMessageBox.critical(self, "Error", f"No se pudo cargar la asistencia: {e}")
 
     def _update_summary(self, total_students, present_students):
@@ -174,7 +176,7 @@ class AttendancePage(QWidget):
             for date_str in class_dates:
                 self.calendar.setDateTextFormat(QDate.fromString(date_str, "yyyy-MM-dd"), highlight_format)
         except Exception as e:
-            print(f"Could not highlight schedule: {e}")
+            print(f"ERROR in _highlight_scheduled_dates: {e}")
 
     def _style_row_by_status(self, row, status):
         color = QColor("#fef2f2") if status == "Ausente" else QColor(Qt.GlobalColor.transparent)
@@ -199,4 +201,5 @@ class AttendancePage(QWidget):
             QMessageBox.information(self, "Éxito", f"La asistencia para el {target_date} ha sido guardada.")
             self._update_attendance_view()
         except Exception as e:
+            print(f"ERROR in _save_attendance: {e}")
             QMessageBox.critical(self, "Error", f"No se pudo guardar la asistencia: {e}")
