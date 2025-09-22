@@ -151,6 +151,11 @@ def update_student_in_group(group_name: str, student_id: str, new_name: str):
     if not student_found: raise ValueError("Student not found.")
     data_manager.save_group_config(group_name, config)
 
+def get_students_for_group(group_name: str) -> List[Dict[str, Any]]:
+    """Returns the list of students for a given group."""
+    config = data_manager.load_group_config(group_name)
+    return config.get("students", [])
+
 def get_attendance_for_date(group_name: str, target_date: str) -> Dict[str, Dict[str, str]]:
     all_attendance = data_manager.load_attendance(group_name)
     date_attendance = {}
