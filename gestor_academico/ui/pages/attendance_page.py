@@ -52,10 +52,18 @@ class AttendancePage(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
 
+        title_layout = QHBoxLayout()
         self.title_label = QLabel("Asistencia del Grupo...")
         self.title_label.setObjectName("HeaderTitle")
         self.title_label.setStyleSheet("font-size: 20px;")
-        layout.addWidget(self.title_label)
+
+        self.mark_all_present_button = QPushButton("Marcar Todos como Presentes")
+        self.mark_all_present_button.clicked.connect(self._on_mark_all_present)
+
+        title_layout.addWidget(self.title_label)
+        title_layout.addStretch()
+        title_layout.addWidget(self.mark_all_present_button)
+        layout.addLayout(title_layout)
 
         self.attendance_table = QTableWidget()
         self.attendance_table.setColumnCount(3)
@@ -204,3 +212,10 @@ class AttendancePage(QWidget):
         except Exception as e:
             print(f"ERROR in _save_attendance: {e}")
             QMessageBox.critical(self, "Error", f"No se pudo guardar la asistencia: {e}")
+
+    def _on_mark_all_present(self):
+        """Sets the status of all students in the table to 'Presente'."""
+        for row in range(self.attendance_table.rowCount()):
+            status_combo = self.attendance_table.cellWidget(row, 1)
+            if isinstance(status_combo, StatusComboBox):
+                status_combo.set_selected_status("Presente")

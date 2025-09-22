@@ -43,6 +43,11 @@ class GroupDetailPage(QWidget):
 
     def load_group_data(self):
         if not self.group_name: return
+
+        # Disable save buttons on data load, as form is now "clean"
+        self.save_settings_button.setEnabled(False)
+        self.save_schedule_button.setEnabled(False)
+
         try:
             group_data = logic.get_group_details(self.group_name)
             if not group_data: self.backRequested.emit(); return
@@ -75,6 +80,7 @@ class GroupDetailPage(QWidget):
         self.students_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.students_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.students_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.students_table.itemSelectionChanged.connect(self._on_student_selection_changed)
         layout.addWidget(self.students_table)
 
         button_layout = QHBoxLayout()
@@ -83,6 +89,9 @@ class GroupDetailPage(QWidget):
         self.edit_student_button = QPushButton("Editar Estudiante")
         self.remove_student_button = QPushButton("Eliminar Estudiante")
         self.import_csv_button = QPushButton("Importar desde CSV")
+
+        self.edit_student_button.setEnabled(False)
+        self.remove_student_button.setEnabled(False)
 
         self.add_student_button.clicked.connect(self._on_add_student)
         self.edit_student_button.clicked.connect(self._on_edit_student)
@@ -105,7 +114,9 @@ class GroupDetailPage(QWidget):
         general_groupbox = QGroupBox("Configuración General")
         form_layout = QFormLayout()
         self.group_name_input = QLineEdit()
+        self.group_name_input.textChanged.connect(lambda: self.save_settings_button.setEnabled(True))
         self.threshold_input = QSpinBox()
+        self.threshold_input.valueChanged.connect(lambda: self.save_settings_button.setEnabled(True))
         self.threshold_input.setRange(0, 100); self.threshold_input.setSuffix(" %")
         form_layout.addRow("Nombre del Grupo:", self.group_name_input)
         form_layout.addRow("Umbral de Asistencia Mínima:", self.threshold_input)
@@ -121,6 +132,7 @@ class GroupDetailPage(QWidget):
         button_layout.addStretch()
         self.save_settings_button = QPushButton("Guardar Configuración")
         self.save_settings_button.setObjectName("PrimaryButton")
+        self.save_settings_button.setEnabled(False)
         self.save_settings_button.clicked.connect(self._on_save_settings)
         button_layout.addWidget(self.save_settings_button)
         self.settings_layout.addLayout(button_layout)
@@ -136,6 +148,11 @@ class GroupDetailPage(QWidget):
         for day in days:
             day_layout = QHBoxLayout()
             checkbox = QCheckBox("Activo"); start_time = QTimeEdit(); end_time = QTimeEdit()
+
+            checkbox.stateChanged.connect(lambda: self.save_schedule_button.setEnabled(True))
+            start_time.timeChanged.connect(lambda: self.save_schedule_button.setEnabled(True))
+            end_time.timeChanged.connect(lambda: self.save_schedule_button.setEnabled(True))
+
             day_layout.addWidget(checkbox); day_layout.addWidget(QLabel("De:")); day_layout.addWidget(start_time)
             day_layout.addWidget(QLabel("a:")); day_layout.addWidget(end_time); day_layout.addStretch()
             form_layout.addRow(day, day_layout)
@@ -145,6 +162,7 @@ class GroupDetailPage(QWidget):
         button_layout.addStretch()
         self.save_schedule_button = QPushButton("Guardar Horario")
         self.save_schedule_button.setObjectName("PrimaryButton")
+        self.save_schedule_button.setEnabled(False)
         self.save_schedule_button.clicked.connect(self._on_save_schedule)
         button_layout.addWidget(self.save_schedule_button)
         layout.addLayout(button_layout)
@@ -203,6 +221,10 @@ class GroupDetailPage(QWidget):
             if period.get("start_date"): start_date_edit.setDate(QDate.fromString(period["start_date"], "yyyy-MM-dd"))
             end_date_edit = QDateEdit(calendarPopup=True); end_date_edit.setDisplayFormat("yyyy-MM-dd")
             if period.get("end_date"): end_date_edit.setDate(QDate.fromString(period["end_date"], "yyyy-MM-dd"))
+
+            start_date_edit.dateChanged.connect(lambda: self.save_settings_button.setEnabled(True))
+            end_date_edit.dateChanged.connect(lambda: self.save_settings_button.setEnabled(True))
+
             form_layout.addRow("Fecha de Inicio:", start_date_edit)
             form_layout.addRow("Fecha de Fin:", end_date_edit)
             group_box.setLayout(form_layout)
@@ -231,7 +253,7 @@ class GroupDetailPage(QWidget):
                 self.group_name = general_settings["name"]
                 self.title_label.setText(f"Detalles de: {self.group_name}")
             QMessageBox.information(self, "Éxito", "Configuración guardada.")
-            self.load_group_data()
+            self.load_group_data() # Resets button state
         except Exception as e:
             print(f"ERROR in _on_save_settings: {e}")
             QMessageBox.critical(self, "Error", f"No se pudo guardar la configuración: {e}")
@@ -258,6 +280,13 @@ class GroupDetailPage(QWidget):
         try:
             logic.update_group_settings(self.group_name, {"schedule": new_schedule})
             QMessageBox.information(self, "Éxito", "Horario guardado.")
+            self.save_schedule_button.setEnabled(False)
         except Exception as e:
             print(f"ERROR in _on_save_schedule: {e}")
             QMessageBox.critical(self, "Error", f"No se pudo guardar el horario: {e}")
+
+    def _on_student_selection_changed(self):
+        """Enables or disables student action buttons based on selection."""
+        is_student_selected = bool(self.students_table.selectedItems())
+        self.edit_student_button.setEnabled(is_student_selected)
+        self.remove_student_button.setEnabled(is_student_selected)
