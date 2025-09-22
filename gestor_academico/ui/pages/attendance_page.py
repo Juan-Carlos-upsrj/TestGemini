@@ -62,7 +62,8 @@ class AttendancePage(QWidget):
         self.attendance_table.setHorizontalHeaderLabels(["Estudiante", "Estado", "Notas"])
         header = self.attendance_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
+        header.resizeSection(1, 130) # Give the status column a fixed, generous width
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self.attendance_table.verticalHeader().setVisible(False)
         layout.addWidget(self.attendance_table)

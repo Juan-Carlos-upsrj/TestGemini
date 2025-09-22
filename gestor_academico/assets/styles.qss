@@ -38,4 +38,17 @@ QCalendarWidget QAbstractItemView:item:selected { background-color: #007aff; col
 QTableWidget { border: none; gridline-color: #e5e7eb; }
 QHeaderView::section { background-color: #f9fafb; padding: 8px; border: none; border-bottom: 1px solid #e5e7eb; font-weight: 600; }
 QTableWidget::item { padding: 10px; border-bottom: 1px solid #e5e7eb; }
-QTableWidget::item:selected { background-color: #eef5ff; }
+QTableWidget::item:selected {
+    background-color: #eef5ff;
+}
+
+QTableWidget::item:focus {
+    outline: none;
+    border: 1px solid #007aff;
+}
+
+/* Remove focus rectangle from combo boxes */
+QComboBox:focus {
+    outline: none;
+    border: 1px solid #007aff;
+}

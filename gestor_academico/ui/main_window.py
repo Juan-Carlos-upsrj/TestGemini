@@ -1,6 +1,7 @@
 import sys
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QLabel, QStackedWidget, QScrollArea, QApplication, QInputDialog, QMessageBox
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeySequence, QAction
 from gestor_academico.core import logic
 from .widgets.group_card import GroupCard
 from .pages.attendance_page import AttendancePage
@@ -15,6 +16,28 @@ class MainWindow(QMainWindow):
         self.main_layout = QHBoxLayout(central_widget); self.main_layout.setContentsMargins(0, 0, 0, 0); self.main_layout.setSpacing(0)
         self.sidebar = self._create_sidebar(); self.content_area = self._create_content_area()
         self.main_layout.addWidget(self.sidebar); self.main_layout.addWidget(self.content_area)
+        self._create_shortcuts()
+
+    def _create_shortcuts(self):
+        """Creates global keyboard shortcuts for the application."""
+        # Quit Shortcut
+        quit_action = QAction("Salir", self)
+        quit_action.setShortcut(QKeySequence.StandardKey.Quit) # Ctrl+Q
+        quit_action.triggered.connect(self.close)
+        self.addAction(quit_action)
+
+        # New Group Shortcut
+        new_group_action = QAction("Nuevo Grupo", self)
+        new_group_action.setShortcut(QKeySequence.StandardKey.New) # Ctrl+N
+        new_group_action.triggered.connect(self._on_create_group_clicked)
+        self.addAction(new_group_action)
+
+        # Save Shortcut
+        save_action = QAction("Guardar", self)
+        save_action.setShortcut(QKeySequence.StandardKey.Save) # Ctrl+S
+        save_action.triggered.connect(self._on_save_action_triggered)
+        self.addAction(save_action)
+
     def _create_sidebar(self):
         sidebar_widget = QWidget(); sidebar_widget.setObjectName("Sidebar"); sidebar_widget.setFixedWidth(240)
         layout = QVBoxLayout(sidebar_widget); layout.setContentsMargins(10, 20, 10, 20); layout.setSpacing(10); layout.setAlignment(Qt.AlignTop)
@@ -89,6 +112,19 @@ class MainWindow(QMainWindow):
     def _on_page_changed(self, index):
         widget = self.stacked_widget.widget(index)
         if hasattr(widget, 'refresh_data'): widget.refresh_data()
+
+    def _on_save_action_triggered(self):
+        """Triggers the save action on the currently visible page."""
+        current_widget = self.stacked_widget.currentWidget()
+        # Check if the page has a specific save method and call it
+        if hasattr(current_widget, '_save_attendance'):
+            current_widget._save_attendance()
+        elif hasattr(current_widget, '_on_save_settings'):
+            current_widget._on_save_settings()
+        elif hasattr(current_widget, '_on_save_schedule'):
+            current_widget._on_save_schedule()
+        else:
+            print("LOG: Save action triggered, but no save method found on current page.")
 
     def _on_config_button_clicked(self):
         """Navigates to the settings tab of the first available group."""
